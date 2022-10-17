@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "ml-implementations"
+version = "0.1.0"
+description = "Implementations of machine learning algorithms"
+authors = ["terkel_olsen@hotmail.com"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+scikit-learn = "^1.1.2"
+pandas = "^1.5.0"
+numpy = "^1.23.4"
+scipy = "^1.9.2"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^0.982"
+isort = "^5.10.1"
+pre-commit = "^2.20.0"
+black = "^22.10.0"
+pylint = "^2.15.4"
+pytest = "^7.1.3"
+tox = "^3.26.0"
+tox-poetry = "^0.4.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

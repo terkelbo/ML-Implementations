@@ -1,0 +1,10 @@
+[MESSAGES CONTROL]
+disable=
+    missing-function-docstring,
+    missing-module-docstring,
+    missing-class-docstring,
+    unspecified-encoding,
+    no-name-in-module,
+    fixme,
+    too-few-public-methods,
+    invalid-name
