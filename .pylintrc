@@ -7,4 +7,6 @@ disable=
     no-name-in-module,
     fixme,
     too-few-public-methods,
-    invalid-name
+    invalid-name,
+    too-many-arguments,
+    too-many-instance-attributes,
