@@ -14,24 +14,24 @@ class RegressionTree(BaseTreeEstimator):
             if data_point[node.split_point.feature_index] <= node.split_point.threshold:
                 if node.left is None:
                     # this is a leaf node
-                    prediction = self._get_y_mean(node.data_indexes)
+                    prediction = self.get_node_prediction(node.data_indexes)
                     break
 
                 node = node.left
             else:
                 if node.right is None:
                     # this is a leaf node
-                    prediction = self._get_y_mean(node.data_indexes)
+                    prediction = self.get_node_prediction(node.data_indexes)
                     break
 
                 node = node.right
 
-        prediction = self._get_y_mean(node.data_indexes)
+        prediction = self.get_node_prediction(node.data_indexes)
         assert prediction is not None, "Prediction is None in a leaf node"
 
         return prediction
 
-    def _get_y_mean(self, data_indexes: npt.NDArray[np.int64]) -> float | None:
+    def get_node_prediction(self, data_indexes: npt.NDArray[np.int64]) -> float | None:
         """
         Returns the mean of the target values for the given data indexes
         Returns none if there are no data indexes
@@ -54,8 +54,8 @@ class RegressionTree(BaseTreeEstimator):
         data_indexes_left, data_indexes_right = self._get_data_indexes_from_split_point(
             node, feature_index, split_point
         )
-        y_mean_left = self._get_y_mean(data_indexes_left)
-        y_mean_right = self._get_y_mean(data_indexes_right)
+        y_mean_left = self.get_node_prediction(data_indexes_left)
+        y_mean_right = self.get_node_prediction(data_indexes_right)
         cost_left = (
             np.sum((self.target[data_indexes_left] - y_mean_left) ** 2)
             if y_mean_left is not None

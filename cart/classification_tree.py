@@ -14,19 +14,19 @@ class ClassificationTree(BaseTreeEstimator):
             if data_point[node.split_point.feature_index] <= node.split_point.threshold:
                 if node.left is None:
                     # this is a leaf node
-                    prediction = self._get_class_majority(node.data_indexes)
+                    prediction = self.get_node_prediction(node.data_indexes)
                     break
 
                 node = node.left
             else:
                 if node.right is None:
                     # this is a leaf node
-                    prediction = self._get_class_majority(node.data_indexes)
+                    prediction = self.get_node_prediction(node.data_indexes)
                     break
 
                 node = node.right
 
-        prediction = self._get_class_majority(node.data_indexes)
+        prediction = self.get_node_prediction(node.data_indexes)
         assert prediction is not None, "Prediction is None in a leaf node"
 
         return prediction
@@ -35,12 +35,12 @@ class ClassificationTree(BaseTreeEstimator):
         """
         Predicts the target value in the given node
         """
-        prediction = self._get_class_majority(node.data_indexes)
+        prediction = self.get_node_prediction(node.data_indexes)
         assert prediction is not None, "Prediction is None in the given node"
 
         return prediction
 
-    def _get_class_majority(self, data_indexes: npt.NDArray[np.int64]) -> int | None:
+    def get_node_prediction(self, data_indexes: npt.NDArray[np.int64]) -> float | None:
         """
         Returns the majority class for the given data indexes
         Returns none if there are no data indexes
@@ -62,8 +62,8 @@ class ClassificationTree(BaseTreeEstimator):
         data_indexes_left, data_indexes_right = self._get_data_indexes_from_split_point(
             node, feature_index, split_point
         )
-        class_majority_left = self._get_class_majority(data_indexes_left)
-        class_majority_right = self._get_class_majority(data_indexes_right)
+        class_majority_left = self.get_node_prediction(data_indexes_left)
+        class_majority_right = self.get_node_prediction(data_indexes_right)
         cost_left = (
             np.sum(self.target[data_indexes_left] != class_majority_left)
             if class_majority_left is not None

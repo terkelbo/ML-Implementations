@@ -10,3 +10,5 @@ disable=
     invalid-name,
     too-many-arguments,
     too-many-instance-attributes,
+    redefined-outer-name,
+    duplicate-code,
