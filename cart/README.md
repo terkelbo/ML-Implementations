@@ -4,9 +4,9 @@ This is a python implementation of the CART algorithm for binary classication an
 
 ### Pruning
 
-The implementation of the cost-complexity pruning is still work in progress and is not fully implemented.
+The pruning is implemented using the cost-complexity pruning algorithm. The algorithm is based on the description in the book "Elements of Statistical Learning" by Hastie, Tibshirani and Friedman. THe implementation is not optimised for speed and hence it is pretty slow.
 
 # TODOs
 
-- [ ] Implement cost-complexity pruning
-- [ ] Implement cross-validation for pruning
+- [ x ] Implement cost-complexity pruning
+- [ x ] Implement cross-validation for pruning (implemented in the tests of the pruner)

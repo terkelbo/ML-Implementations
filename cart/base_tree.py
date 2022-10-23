@@ -131,6 +131,61 @@ class Tree:
         _get_leaf_nodes(self.root)
         return leaf_nodes
 
+    def get_internal_nodes(self) -> list[Node]:
+        """
+        Returns a list of all the internal nodes in the tree
+        excluding the root node
+        """
+        internal_nodes: list[Node] = []
+
+        def _get_internal_nodes(node: Node) -> None:
+            if not node.is_leaf_node:
+                internal_nodes.append(node)
+
+            if node.left is not None:
+                _get_internal_nodes(node.left)
+            if node.right is not None:
+                _get_internal_nodes(node.right)
+
+        _get_internal_nodes(self.root)
+        return internal_nodes[1:]
+
+    def remove_subtree_after_node(self, node: Node) -> None:
+        """
+        Removes the subtree after the given node in place
+        """
+        # iterate through the nodes of the new tree
+        # when we reach the node we want to remove
+        # we set the left and right nodes to None
+        # and return the new tree
+        node_found = False
+
+        def _remove_subtree_after_node(node: Node, new_node: Node) -> None:
+            if node == new_node:
+                nonlocal node_found
+                node_found = True
+                new_node.left = None
+                new_node.right = None
+                return None
+
+            if new_node.left is not None:
+                _remove_subtree_after_node(node, new_node.left)
+            if new_node.right is not None:
+                _remove_subtree_after_node(node, new_node.right)
+
+            return None
+
+        _remove_subtree_after_node(node, self.root)
+
+        if not node_found:
+            raise ValueError("Node not found in tree")
+
+    def get_total_number_of_nodes(self) -> int:
+        """
+        Returns the total number of nodes in the tree
+        """
+        return len(self.get_leaf_nodes()) + len(self.get_internal_nodes())
+
 
 class BaseTreeEstimator:
     def __init__(
@@ -323,6 +378,9 @@ class BaseTreeEstimator:
         self._fit(node.right, min_samples_in_node)
 
     def _predict(self, data_point: npt.NDArray) -> float:
+        raise NotImplementedError
+
+    def get_node_prediction(self, data_indexes: npt.NDArray[np.int64]) -> float | None:
         raise NotImplementedError
 
     def _cost_function(
