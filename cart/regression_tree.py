@@ -1,10 +1,10 @@
 import numpy as np
 import numpy.typing as npt
 
-from cart.base_tree import Node, _BaseTree
+from cart.base_tree import BaseTreeEstimator, Node
 
 
-class RegressionTree(_BaseTree):
+class RegressionTree(BaseTreeEstimator):
     def _predict(self, data_point: npt.NDArray) -> float:
         """
         Predicts the target value for a single data point
@@ -46,7 +46,7 @@ class RegressionTree(_BaseTree):
         node: Node,
         feature_index: int,
         split_point: float,
-    ) -> float:
+    ) -> tuple[float, float, float]:
         """
         Implements the cost function from the book,
         which is MSE on both sides using the mean as the predictor
@@ -66,4 +66,4 @@ class RegressionTree(_BaseTree):
             if y_mean_right is not None
             else 0
         )
-        return cost_left + cost_right
+        return cost_left, cost_right, cost_left + cost_right

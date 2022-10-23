@@ -1,10 +1,10 @@
 import numpy as np
 import numpy.typing as npt
 
-from cart.base_tree import Node, _BaseTree
+from cart.base_tree import BaseTreeEstimator, Node
 
 
-class ClassificationTree(_BaseTree):
+class ClassificationTree(BaseTreeEstimator):
     def _predict(self, data_point: npt.NDArray) -> float:
         """
         Predicts the target value for a single data point
@@ -31,6 +31,15 @@ class ClassificationTree(_BaseTree):
 
         return prediction
 
+    def predict_until_node(self, node: Node) -> float:
+        """
+        Predicts the target value in the given node
+        """
+        prediction = self._get_class_majority(node.data_indexes)
+        assert prediction is not None, "Prediction is None in the given node"
+
+        return prediction
+
     def _get_class_majority(self, data_indexes: npt.NDArray[np.int64]) -> int | None:
         """
         Returns the majority class for the given data indexes
@@ -46,7 +55,7 @@ class ClassificationTree(_BaseTree):
         node: Node,
         feature_index: int,
         split_point: float,
-    ) -> float:
+    ) -> tuple[float, float, float]:
         """
         Implements the misclassification error cost function from the book
         """
@@ -59,10 +68,10 @@ class ClassificationTree(_BaseTree):
             np.sum(self.target[data_indexes_left] != class_majority_left)
             if class_majority_left is not None
             else 0
-        )
+        ) / data_indexes_left.shape[0]
         cost_right = (
             np.sum(self.target[data_indexes_right] != class_majority_right)
             if class_majority_right is not None
             else 0
-        )
-        return cost_left + cost_right
+        ) / data_indexes_right.shape[0]
+        return cost_left, cost_right, cost_left + cost_right

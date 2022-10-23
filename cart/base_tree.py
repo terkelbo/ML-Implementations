@@ -1,5 +1,6 @@
 import sys
-from typing import NamedTuple
+import uuid
+from dataclasses import dataclass
 
 import numpy as np
 import numpy.typing as npt
@@ -7,7 +8,10 @@ import numpy.typing as npt
 sys.setrecursionlimit(10000)
 
 
-class SplitPoint(NamedTuple):
+@dataclass
+class SplitPoint:
+    cost_left: float
+    cost_right: float
     cost: float
     feature_index: int
     threshold: float
@@ -23,12 +27,24 @@ class Node:
         data_indexes: npt.NDArray[np.int64],
         parent: "Node | None" = None,
     ):
+        self.node_id = self._generate_unique_node_id()
         self.is_left_node = is_left_node
         self.data_indexes = data_indexes
         self.parent = parent
         self.left: "Node | None" = None
         self.right: "Node | None" = None
         self.split_point: SplitPoint | None = None
+
+    def _generate_unique_node_id(self) -> str:
+        """
+        Generates a unique node id
+        """
+        return str(uuid.uuid4())
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Node):
+            return NotImplemented
+        return self.node_id == other.node_id
 
     def _get_name_from_split_point(self, split_point: SplitPoint) -> str:
         """
@@ -43,9 +59,18 @@ class Node:
         Prints the name if split point is given else
         prints that it is a leaf node
         """
-        if self.split_point is None:
+        if self.is_leaf_node:
             return "Leaf Node"
+
+        assert self.split_point is not None
         return self._get_name_from_split_point(self.split_point)
+
+    @property
+    def is_leaf_node(self) -> bool:
+        """
+        Returns true if the node is a leaf node
+        """
+        return self.split_point is None
 
 
 class Tree:
@@ -87,8 +112,27 @@ class Tree:
         self.print(node.left, depth + 1)
         self.print(node.right, depth + 1)
 
+    def get_leaf_nodes(self) -> list[Node]:
+        """
+        Returns a list of all the leaf nodes in the tree
+        """
+        leaf_nodes: list[Node] = []
 
-class _BaseTree:
+        def _get_leaf_nodes(node: Node) -> None:
+            if node.is_leaf_node:
+                leaf_nodes.append(node)
+                return
+
+            if node.left is not None:
+                _get_leaf_nodes(node.left)
+            if node.right is not None:
+                _get_leaf_nodes(node.right)
+
+        _get_leaf_nodes(self.root)
+        return leaf_nodes
+
+
+class BaseTreeEstimator:
     def __init__(
         self,
         data: npt.NDArray,
@@ -152,6 +196,7 @@ class _BaseTree:
         is_left_side = self.data[node.data_indexes, feature_index] <= split_point
         data_indexes_left = node.data_indexes[is_left_side]
         data_indexes_right = node.data_indexes[~is_left_side]
+
         return data_indexes_left, data_indexes_right
 
     def _find_split_point_exact(self, node: Node) -> SplitPoint | None:
@@ -163,25 +208,26 @@ class _BaseTree:
 
         all_cost_values: list[SplitPoint] = []
         for feature_index in range(self.data.shape[1]):
-            # special case for when there is only one unique value
-            # in the feature
-            if np.unique(self.data[node.data_indexes, feature_index]).shape[0] == 1:
-                continue
+            # get unique split points for the feature
+            # NOTE: that this also sorts the data which is needed
+            split_points = np.unique(self.data[node.data_indexes, feature_index])
 
-            for data_index in node.data_indexes:
-                split_point = self.data[data_index, feature_index]
-
+            # Loop through all the split points and calculate the cost
+            # NOTE: we skip the last split point because it will result in no data in the right node
+            for split_point in split_points[:-1]:
                 # don't check a split point if it has already been checked
                 if (feature_index, split_point) in self.split_points_already_checked:
                     continue
 
-                cost = self._cost_function(
+                cost_left, cost_right, cost = self._cost_function(
                     node=node, feature_index=feature_index, split_point=split_point
                 )
-                all_cost_values.append(SplitPoint(cost, feature_index, split_point))
+                all_cost_values.append(
+                    SplitPoint(cost_left, cost_right, cost, feature_index, split_point)
+                )
 
         best_split_point = (
-            min(all_cost_values, key=lambda x: x[0]) if all_cost_values else None
+            min(all_cost_values, key=lambda x: x.cost) if all_cost_values else None
         )
 
         if best_split_point is not None:
@@ -215,19 +261,25 @@ class _BaseTree:
 
             split_point = min_value
             step_size = self.step_size[feature_index]
-            while split_point <= max_value:
-                # don't check a split point if it has already been checked
+            while True:
                 split_point += step_size
+
+                if split_point >= max_value:
+                    break
+
+                # don't check a split point if it has already been checked
                 if (feature_index, split_point) in self.split_points_already_checked:
                     continue
 
-                cost = self._cost_function(
+                cost_left, cost_right, cost = self._cost_function(
                     node=node, feature_index=feature_index, split_point=split_point
                 )
-                all_cost_values.append(SplitPoint(cost, feature_index, split_point))
+                all_cost_values.append(
+                    SplitPoint(cost_left, cost_right, cost, feature_index, split_point)
+                )
 
         best_split_point = (
-            min(all_cost_values, key=lambda x: x[0]) if all_cost_values else None
+            min(all_cost_values, key=lambda x: x.cost) if all_cost_values else None
         )
         if best_split_point is not None:
             self.split_points_already_checked.add(
@@ -278,5 +330,5 @@ class _BaseTree:
         node: Node,
         feature_index: int,
         split_point: float,
-    ) -> float:
+    ) -> tuple[float, float, float]:
         raise NotImplementedError
