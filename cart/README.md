@@ -4,7 +4,7 @@ This is a python implementation of the CART algorithm for binary classication an
 
 ### Pruning
 
-The implementation of the cost-complexity pruning is still work in progress and is not fully implemented yet.
+The implementation of the cost-complexity pruning is still work in progress and is not fully implemented.
 
 # TODOs
 
