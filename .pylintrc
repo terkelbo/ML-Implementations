@@ -12,3 +12,8 @@ disable=
     too-many-instance-attributes,
     redefined-outer-name,
     duplicate-code,
+    too-many-ancestors,
+    arguments-differ
+
+[GENERATED MEMBERS]
+generated-members=torch.*
