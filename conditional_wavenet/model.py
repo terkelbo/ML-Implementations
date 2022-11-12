@@ -5,7 +5,7 @@ import torch
 from torch import nn
 
 
-class WaveNet(nn.Module):
+class ConditionalWaveNet(nn.Module):
     def __init__(
         self,
         layers: int,
@@ -124,7 +124,7 @@ class WaveNet(nn.Module):
             # how to deal with the different sizes of the input and output
             # of the dilated convolution.
             # I think this is the correct way to do it. The paper says
-            # that they implement it the same way as in the WaveNet paper.
+            # that they implement it the same way as in the ConditionalWaveNet paper.
             # Which is the same as this.
             x = x_conv + x[:, :, -x_conv.shape[2] :]
 
@@ -134,9 +134,9 @@ class WaveNet(nn.Module):
         return x
 
 
-class WaveNetLightning(pl.LightningModule):
+class ConditionalWaveNetLightning(pl.LightningModule):
     def __init__(
-        self, model: WaveNet, learning_rate: float, weight_decay: float
+        self, model: ConditionalWaveNet, learning_rate: float, weight_decay: float
     ) -> None:
         super().__init__()
         self.model = model
