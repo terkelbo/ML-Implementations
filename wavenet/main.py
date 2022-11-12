@@ -9,19 +9,20 @@ def main() -> None:
     # parameters
     layers = 4
     k = 2
+    number_of_channels = 1
     receptive_field = 2 ** (layers - 1) * k
-    learning_rate = 0.001
+    learning_rate = 0.0025
     weight_decay = 0.001
 
     # data
     df = get_data()
     df = apply_data_preprocessing(df)
-    X, y = transform_data_to_torch(df, receptive_field=receptive_field)
+    X, y = transform_data_to_torch(df, receptive_field)
     X = X.float()
     y = y.float()
 
     # model
-    wave_net = WaveNet(layers, k)
+    wave_net = WaveNet(layers, k, number_of_channels)
     wave_net = wave_net.float()
     model = WaveNetLightning(
         wave_net, learning_rate=learning_rate, weight_decay=weight_decay
@@ -32,7 +33,7 @@ def main() -> None:
     train_loader = torch.utils.data.DataLoader(
         torch.utils.data.TensorDataset(X, y), batch_size=X.shape[0]
     )
-    trainer = pl.Trainer(max_epochs=2000)
+    trainer = pl.Trainer(max_epochs=300)
     trainer.fit(model, train_loader)
 
 

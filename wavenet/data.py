@@ -50,11 +50,11 @@ def apply_data_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def transform_data_to_torch(
-    df: pd.DataFrame, receptive_field: int
+    df: pd.DataFrame, receptive_field: int, *df_conditions: pd.DataFrame
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
-    Takes the dataset for a single state (for now) and transforms
-    it into a torch tensor of shape (n, 1, receptive_field).
+    Takes the dataset and all the conditional datasets of the same size and transforms them into
+    it into a torch tensor of shape (n, number_of_conditions + 1, 1, receptive_field).
     It pads the left side of the dataset with the amount of zeros the
     size of the receptive field.
 
@@ -65,9 +65,33 @@ def transform_data_to_torch(
     padded = torch.zeros(1, receptive_field)
     padded = torch.cat((padded, torch.tensor(df["y"].values).unsqueeze(0)), dim=1)
 
+    padded_conditions = []
+    for df_condition in df_conditions:
+        padded_condition = torch.zeros(1, receptive_field)
+        padded_condition = torch.cat(
+            (padded_condition, torch.tensor(df_condition["y"].values).unsqueeze(0)),
+            dim=1,
+        )
+        padded_conditions.append(padded_condition)
+
     # create the sliding window of size receptive_field
     # and stack them into a tensor
     X = torch.stack([padded[:, i : i + receptive_field] for i in range(len(df))], dim=0)
+
+    # create the sliding window for the conditions
+    X_conditions = []
+    for padded_condition in padded_conditions:
+        X_condition = torch.stack(
+            [padded_condition[:, i : i + receptive_field] for i in range(len(df))],
+            dim=0,
+        )
+        X_conditions.append(X_condition)
+
+    # stack the conditions with the main dataset
+    if X_conditions:
+        X = torch.stack([X] + X_conditions, dim=1)
+    else:
+        X = X.unsqueeze(1)
 
     # create the target tensor
     y = torch.tensor(df["y"].values)
