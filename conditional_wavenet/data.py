@@ -6,7 +6,7 @@ def get_data() -> pd.DataFrame:
     """
     Returns the dataframe containing the data.
     """
-    df = pd.read_csv("wavenet/raw_data/HistoricalPrices.csv")
+    df = pd.read_csv("conditional_wavenet/raw_data/HistoricalPrices.csv")
     # remove leading space in column name
     df.columns = df.columns.str.strip()
 

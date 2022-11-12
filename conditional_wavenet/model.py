@@ -28,7 +28,7 @@ class ConditionalWaveNet(nn.Module):
         self.dilations = [2**i for i in range(layers)]
 
         # first layer for the main dataset and the conditionals
-        self.first_layers = []
+        self.first_layers: list[nn.Sequential] = []
         for _ in range(number_of_conditionals + 1):
             _layer = nn.Sequential(
                 nn.Conv1d(
@@ -50,8 +50,15 @@ class ConditionalWaveNet(nn.Module):
                 )
             self.first_layers.append(_layer)
 
+        # init the first layers
+        for sequential in self.first_layers:
+            for layer in sequential:
+                nn.init.normal_(
+                    layer.weight, 0.0, math.sqrt(2 / (number_of_channels * k))
+                )
+
         # the skip connections for the main dataset and the conditionals
-        self.skip_connections = []
+        self.skip_connections: list[nn.Conv1d] = []
         for _ in range(number_of_conditionals + 1):
             self.skip_connections.append(
                 nn.Conv1d(

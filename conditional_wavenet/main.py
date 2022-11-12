@@ -15,7 +15,7 @@ def main() -> None:
     k = 2
     number_of_channels = 1
     receptive_field = 2 ** (layers - 1) * k
-    learning_rate = 0.0025
+    learning_rate = 0.001
     weight_decay = 0.001
 
     # data
@@ -37,7 +37,7 @@ def main() -> None:
     train_loader = torch.utils.data.DataLoader(
         torch.utils.data.TensorDataset(X, y), batch_size=X.shape[0]
     )
-    trainer = pl.Trainer(max_epochs=300)
+    trainer = pl.Trainer(max_epochs=200)
     trainer.fit(model, train_loader)
 
 
